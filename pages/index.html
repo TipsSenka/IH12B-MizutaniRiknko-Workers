@@ -1,11 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>フロントエンド</title>
+    <title>専科 API Console</title>
+    <style>
+        :root {
+            --ink: #172b35;
+            --muted: #65777b;
+            --paper: #f4f0e8;
+            --panel: #fffdf8;
+            --line: #d9d3c6;
+            --teal: #087f78;
+            --coral: #e66b4f;
+            --shadow: 0 18px 45px rgba(42, 55, 52, .12);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background: var(--paper);
+            font-family: Georgia, "Yu Mincho", serif;
+        }
+
+        body::before {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            content: "";
+            opacity: .45;
+            background-image: linear-gradient(rgba(8, 127, 120, .05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(8, 127, 120, .05) 1px, transparent 1px);
+            background-size: 34px 34px;
+        }
+
+        main { width: min(1080px, calc(100% - 36px)); margin: 0 auto; padding: 52px 0 64px; }
+
+        header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
+        .eyebrow { margin: 0 0 10px; color: var(--coral); font: 700 12px/1.2 Arial, sans-serif; letter-spacing: 2px; }
+        h1 { margin: 0; font-size: clamp(34px, 6vw, 68px); line-height: .95; letter-spacing: 0; }
+        .intro { max-width: 300px; margin: 0; color: var(--muted); font: 14px/1.8 Arial, sans-serif; }
+
+        .connection { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; padding: 20px; background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow); }
+        label { display: block; color: var(--muted); font: 700 11px/1.2 Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+        input { width: 100%; margin-top: 8px; padding: 13px 14px; color: var(--ink); background: #f9f7f1; border: 1px solid var(--line); font: 15px Arial, sans-serif; }
+        button { cursor: pointer; border: 0; color: white; background: var(--teal); padding: 14px 20px; font: 700 13px Arial, sans-serif; transition: transform .2s, background .2s; }
+        button:hover { transform: translateY(-2px); background: #06645f; }
+        button:focus-visible, input:focus-visible { outline: 3px solid rgba(230, 107, 79, .35); outline-offset: 2px; }
+
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 22px; }
+        .card { min-height: 214px; padding: 22px; background: var(--panel); border: 1px solid var(--line); }
+        .card-top { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+        h2 { margin: 0; font-size: 24px; }
+        .path { color: var(--teal); font: 12px monospace; }
+        .card p { color: var(--muted); font: 13px/1.6 Arial, sans-serif; }
+        .result { min-height: 70px; margin: 18px 0 0; padding: 12px; overflow: auto; color: #d9eee8; background: #193339; font: 12px/1.6 Consolas, monospace; white-space: pre-wrap; }
+        .status { display: inline-block; margin-left: 8px; padding: 4px 7px; color: var(--muted); background: #eee9df; font: 700 10px Arial, sans-serif; }
+        .status.ok { color: #176c4d; background: #dcefe4; }
+        .status.error { color: #a33c32; background: #f7ded8; }
+        footer { margin-top: 24px; color: var(--muted); font: 12px Arial, sans-serif; }
+
+        @media (max-width: 700px) {
+            main { padding-top: 30px; }
+            header { display: block; }
+            .intro { margin-top: 18px; }
+            .connection, .grid { grid-template-columns: 1fr; }
+            .connection button { width: 100%; }
+        }
+    </style>
 </head>
 <body>
-    <p>フロントエンド</p>
+    <main>
+        <header>
+            <div>
+                <p class="eyebrow">CLOUDFLARE WORKERS / API CHECK</p>
+                <h1>専科 API<br>Console</h1>
+            </div>
+            <p class="intro">Worker と Pages の接続を、ブラウザからすばやく確認するための画面です。</p>
+        </header>
+
+        <section class="connection" aria-label="Worker接続先">
+            <div>
+                <label for="base-url">Worker base URL</label>
+                <input id="base-url" type="url" value="https://senka-api.takahashi-masa.workers.dev" spellcheck="false">
+            </div>
+            <button id="check-all" type="button">全 API を確認</button>
+        </section>
+
+        <section class="grid" aria-label="APIエンドポイント">
+            <article class="card">
+                <div class="card-top"><h2>Courses</h2><span class="path">/api/course</span></div>
+                <p>開講科目の一覧を取得します。</p>
+                <button class="request" data-path="/api/course" type="button">GET して確認</button>
+                <pre class="result" aria-live="polite">未実行</pre>
+            </article>
+            <article class="card">
+                <div class="card-top"><h2>Hello</h2><span class="path">/api/hello</span></div>
+                <p>名前を付けて挨拶 API を確認します。</p>
+                <input class="name-input" type="text" value="山田" aria-label="名前" placeholder="名前を入力">
+                <button class="request" data-path="/api/hello" type="button">GET して確認</button>
+                <pre class="result" aria-live="polite">未実行</pre>
+            </article>
+            <article class="card">
+                <div class="card-top"><h2>Fortune</h2><span class="path">/api/fortune</span></div>
+                <p>今日の運勢を取得します。</p>
+                <button class="request" data-path="/api/fortune" type="button">GET して確認</button>
+                <pre class="result" aria-live="polite">未実行</pre>
+            </article>
+            <article class="card">
+                <div class="card-top"><h2>Events</h2><span class="path">/api/events</span></div>
+                <p>授業に関する予定を取得します。</p>
+                <button class="request" data-path="/api/events" type="button">GET して確認</button>
+                <pre class="result" aria-live="polite">未実行</pre>
+            </article>
+        </section>
+        <footer>レスポンスのステータスと JSON は各パネルに表示されます。</footer>
+    </main>
+
+    <script>
+        const baseUrl = document.querySelector("#base-url");
+        const buttons = [...document.querySelectorAll(".request")];
+
+        async function request(button) {
+            const card = button.closest(".card");
+            const result = card.querySelector(".result");
+            const path = button.dataset.path;
+            const name = card.querySelector(".name-input")?.value.trim();
+            const url = new URL(path, `${baseUrl.value.replace(/\/$/, "")}/`);
+            if (name !== undefined) url.searchParams.set("name", name);
+
+            button.disabled = true;
+            result.textContent = "通信中...";
+            try {
+                const response = await fetch(url);
+                const body = await response.json();
+                result.innerHTML = `<span class="status ${response.ok ? "ok" : "error"}">${response.status}</span> ${escapeHtml(JSON.stringify(body, null, 2))}`;
+            } catch (error) {
+                result.textContent = `接続失敗: ${error.message}`;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function escapeHtml(value) {
+            return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        }
+
+        buttons.forEach((button) => button.addEventListener("click", () => request(button)));
+        document.querySelector("#check-all").addEventListener("click", async () => {
+            for (const button of buttons) await request(button);
+        });
+    </script>
 </body>
 </html>
